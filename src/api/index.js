@@ -233,7 +233,7 @@ const query = async (req, res) => {
     })
 
     //解析开始
-    // console.log(audioResult);
+    console.log(audioResult);
     let audioId = audioResult.results[0].id;
     const audioDetailResult = await queryData(isTv?`/tv/${audioId}`:`/movie/${audioId}`, {
         language: 'zh-CN'
