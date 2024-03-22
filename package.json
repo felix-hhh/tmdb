@@ -2,9 +2,9 @@
   "name": "tmdb",
   "version": "1.0.0",
   "description": "tmdb数据整理",
-  "main": "index.ts",
+  "main": "app.js",
   "scripts": {
-    "dev": "nodemon ./build/app",
+    "dev": "node-dev src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -13,10 +13,8 @@
   "author": "heoang",
   "license": "ISC",
   "dependencies": {
-    "@types/express": "^4.17.21",
     "axios": "^1.6.8",
     "express": "^5.0.0-beta.2",
-    "nodemon": "^3.1.0",
-    "typescript": "^5.4.3"
+    "node-dev": "^8.0.0"
   }
 }
