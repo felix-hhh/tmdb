@@ -17,8 +17,8 @@ instance.interceptors.request.use(
         if (token !== '' && token !== undefined) {
             config.headers.authorization = token;
         }
-        console.log(`请求地址：${config.url}`  );
-        console.log(config.params);
+        // console.log(`请求地址：${config.url}`  );
+        // console.log(config.params);
         return config;
     },
     error => {

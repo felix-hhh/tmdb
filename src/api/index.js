@@ -220,51 +220,76 @@ const query = async (req, res) => {
     let result = {};
 
     let filename = String(req.query.filename);
+    let language = String(req.query.language !== undefined ? req.query.language : 'zh-CN');
     //分类
-    const typePattern = /s\d+e\d+/gi;
+    const typePattern = /(s\d+)|(e\d+)/gi;
     const isTv = typePattern.test(filename);
+    const tvMatch = filename.match(typePattern);
 
-    filename = clearAudioName(filename);
+    const clearFilename = clearAudioName(filename);
     const queryUrl = isTv ? tvSearchUrl : movieSearchUrl;
 
     const audioResult = await queryData(queryUrl, {
-        query: filename,
-        language: 'zh-CN'
+        query: clearFilename,
+        language: language
     })
 
     //解析开始
-    console.log(audioResult);
+    // console.log(audioResult);
+    if (audioResult.total_results === 0) {
+        res.json(
+            {
+                success: true
+            }
+        )
+        return;
+    }
     let audioId = audioResult.results[0].id;
-    const audioDetailResult = await queryData(isTv?`/tv/${audioId}`:`/movie/${audioId}`, {
-        language: 'zh-CN'
+    const audioDetailResult = await queryData(isTv ? `/tv/${audioId}` : `/movie/${audioId}`, {
+        language: language
     })
 
-    const audioCreditsResult = await queryData(isTv?`/tv/${audioId}/credits`:`/movie/${audioId}/credits`, {
-        language: 'zh-CN'
+    const audioCreditsResult = await queryData(isTv ? `/tv/${audioId}/credits` : `/movie/${audioId}/credits`, {
+        language: language
     })
 
+    console.log('影片详情----------');
     console.log(audioDetailResult);
 
+    result.query_name = filename;
+    result.query_language = language
     result.backdrop_path = audioDetailResult.backdrop_path;
     result.poster_path = audioDetailResult.poster_path;
+    result.id = audioDetailResult.id;
     if (isTv) {
         result.first_air_date = audioDetailResult.first_air_date;
         result.last_air_date = audioDetailResult.last_air_date;
         result.origin_country = audioDetailResult.origin_country;
+        result.last_episode_to_air = audioDetailResult.last_episode_to_air;
         result.title = audioDetailResult.name;
         result.original_title = audioDetailResult.original_name;
         result.case = 'tv';
+
+        const seasonNumber = parseInt(tvMatch[0].match(/\d+/g));
+        const episodeNumber = parseInt(tvMatch[1].match(/\d+/g));
+        const tvDetail = await queryData(`/tv/${audioId}/season/${seasonNumber}/episode/${episodeNumber}`, {
+            language: language
+        })
+        result.episode_detail = tvDetail;
+
+        // console.log(tvDetail);
     } else {
         result.release_date = audioDetailResult.release_date;
         result.title = audioDetailResult.title;
         result.original_title = audioDetailResult.original_title;
         result.tagline = audioDetailResult.tagline;
+        result.belongs_to_collection = audioDetailResult.belongs_to_collection;
         result.case = 'movie';
     }
     result.genres = audioDetailResult.genres;
+    result.runtime = audioDetailResult.runtime;
     result.spoken_languages = audioDetailResult.spoken_languages;
     result.languages = audioDetailResult.languages;
-    result.id = audioDetailResult.id;
     result.original_language = audioDetailResult.original_language;
     result.overview = audioDetailResult.overview;
     result.vote_average = audioDetailResult.vote_average;
@@ -274,7 +299,6 @@ const query = async (req, res) => {
     result.credits = audioCreditsResult.cast;
 
     console.log(result);
-
 
 
     //文件名
